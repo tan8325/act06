@@ -37,8 +37,10 @@ class AgeCounter with ChangeNotifier {
   int age = 0;
 
   void increment() {
-    age++;
-    notifyListeners();
+    if (age < 99) {
+      age++;
+      notifyListeners();
+    }
   }
 
   void decrement() {
@@ -46,6 +48,11 @@ class AgeCounter with ChangeNotifier {
       age--;
       notifyListeners();
     }
+  }
+
+  void setAge(double newAge) {
+    age = newAge.toInt();
+    notifyListeners();
   }
 
   Map<String, dynamic> get milestone {
@@ -59,6 +66,26 @@ class AgeCounter with ChangeNotifier {
       return {"message": "You're an adult now!", "color": Colors.orange};
     } else {
       return {"message": "Golden years!", "color": Colors.grey};
+    }
+  }
+
+  Color get progressColor {
+    if (age <= 33) {
+      return Colors.green;
+    } else if (age <= 67) {
+      return Colors.yellow;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  double get progressValue {
+    if (age <= 33) {
+      return age / 33;
+    } else if (age <= 67) {
+      return (age - 33) / 34;
+    } else {
+      return (age - 67) / 32;
     }
   }
 }
@@ -91,38 +118,70 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ACT06'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Your current age:'),
-            Consumer<AgeCounter>(
-              builder: (context, ageCounter, child) => Text(
-                '${ageCounter.age}',
-                style: Theme.of(context).textTheme.headlineMedium,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('Your current age:', style: TextStyle(fontSize: 18)),
+              Consumer<AgeCounter>(
+                builder: (context, ageCounter, child) => Text(
+                  '${ageCounter.age}',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              ageCounter.milestone["message"],
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FloatingActionButton(
-                  onPressed: ageCounter.decrement,
-                  child: const Icon(Icons.remove),
-                ),
-                const SizedBox(width: 20),
-                FloatingActionButton(
-                  onPressed: ageCounter.increment,
-                  child: const Icon(Icons.add),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text(
+                ageCounter.milestone["message"],
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+
+              Slider(
+                value: ageCounter.age.toDouble(),
+                min: 0,
+                max: 99,
+                divisions: 99,
+                label: "${ageCounter.age}",
+                onChanged: (newAge) {
+                  ageCounter.setAge(newAge);
+                },
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FloatingActionButton(
+                    heroTag: "minusBtn",
+                    onPressed: ageCounter.decrement,
+                    child: const Icon(Icons.remove),
+                  ),
+                  const SizedBox(width: 20),
+                  FloatingActionButton(
+                    heroTag: "plusBtn",
+                    onPressed: ageCounter.increment,
+                    child: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              LinearProgressIndicator(
+                value: ageCounter.progressValue,
+                color: ageCounter.progressColor,
+                backgroundColor: Colors.grey.shade300,
+                minHeight: 10,
+              ),
+
+              const SizedBox(height: 20),
+              Text(
+                "Progress: ${ageCounter.age}/99",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
     );
